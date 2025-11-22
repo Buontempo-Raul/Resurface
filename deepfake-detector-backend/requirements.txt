@@ -1,0 +1,19 @@
+# Core Framework
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+pydantic==2.5.0
+pydantic-settings==2.1.0
+
+# Image Processing
+Pillow==10.1.0
+python-multipart==0.0.6
+
+# Utilities
+python-dotenv==1.0.0
+
+# Optional: For future AI model integration
+# torch==2.1.0
+# torchvision==0.16.0
+# tensorflow==2.15.0
+# numpy==1.26.2
+# opencv-python==4.8.1.78
