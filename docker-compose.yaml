@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./deepfake-detector-backend
+    ports:
+      - "8000:8000"
+    environment:
+      - PORT=8000
+      - HOST=0.0.0.0
+      # Add other environment variables from .env here if needed
+      # or load from file:
+      # env_file:
+      #   - ./deepfake-detector-backend/.env
+    volumes:
+      # Mount the app code for hot reloading (optional, good for dev)
+      # - ./deepfake-detector-backend:/app
+      # Mount models if present
+      # - ./deepfake-detector-backend/FatFormer:/app/FatFormer
+      - backend-logs:/app/logs
+
+  frontend:
+    build:
+      context: ./deepfake-detector-frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+
+volumes:
+  backend-logs:
