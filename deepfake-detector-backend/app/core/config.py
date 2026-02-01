@@ -42,10 +42,14 @@ class Settings(BaseSettings):
     # Processing Settings
     INFERENCE_TIMEOUT: int = 30  # seconds
     BATCH_SIZE: int = 1  # For future batch processing
-    
+
     # Rate Limiting (requests per minute)
     RATE_LIMIT: int = 60
-    
+
+    # FatFormer Settings (for AI model integration)
+    FATFORMER_PATH: str = "FatFormer"
+    CLIP_MODEL_PATH: str = "FatFormer/pretrained/ViT-L-14.pt"
+
     class Config:
         env_file = ".env"
         case_sensitive = True
