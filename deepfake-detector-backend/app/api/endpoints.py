@@ -16,9 +16,7 @@ from app.core.config import settings
 if settings.USE_MOCK_DETECTOR:
     from app.services.mock_detector import MockDetector as Detector
 else:
-    # In the future, import the real detector here
-    # from app.services.real_detector import RealDetector as Detector
-    from app.services.mock_detector import MockDetector as Detector
+    from app.services.efficientnet_detector import EfficientNetDetector as Detector
 
 # Initialize router
 router = APIRouter(prefix="/api", tags=["detection"])

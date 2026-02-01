@@ -42,7 +42,11 @@ class Settings(BaseSettings):
     # Processing Settings
     INFERENCE_TIMEOUT: int = 30  # seconds
     BATCH_SIZE: int = 1  # For future batch processing
-
+    
+    # EfficientNet Settings
+    EFFICIENTNET_MODEL: str = "efficientnet_b0"
+    EFFICIENTNET_THRESHOLD: float = 0.5
+    
     # Rate Limiting (requests per minute)
     RATE_LIMIT: int = 60
 
