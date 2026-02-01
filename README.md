@@ -21,31 +21,27 @@ The project consists of two main components:
 - Node.js 18+
 - npm or yarn
 
-### Running the Application
+### Running the Application (Docker)
 
-**1. Start the Backend:**
+The easiest way to run the application is using Docker Compose.
 
-```bash
-cd deepfake-detector-backend
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-pip install -r requirements.txt
-python main.py
-```
-
-Backend will run on `http://localhost:8000`
-
-**2. Start the Frontend:**
+**1. Start the services:**
 
 ```bash
-cd deepfake-detector-frontend
-npm install
-npm run dev
+docker-compose up -d --build
 ```
 
-Frontend will run on `http://localhost:3000`
+**2. Access the Application:**
 
-**3. Open your browser and upload images to analyze!**
+- **Frontend:** [http://localhost:3000](http://localhost:3000) (Upload images here)
+- **Backend API Docs:** [http://localhost:8000/docs](http://localhost:8000/docs)
+- **Backend API:** [http://localhost:3000/api/](http://localhost:3000/api/)
+
+**3. Stop the services:**
+
+```bash
+docker-compose down
+```
 
 ## Features
 
