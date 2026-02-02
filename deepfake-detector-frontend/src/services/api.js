@@ -89,7 +89,28 @@ export const analyzeImage = async (file, onProgress = null) => {
       },
     });
 
-    return response.data;
+    // Transform snake_case response to camelCase expected by frontend
+    const apiData = response.data;
+    if (apiData.success && apiData.data) {
+      const d = apiData.data;
+      return {
+        success: true,
+        data: {
+          isFake: d.is_fake,
+          confidence: d.confidence,
+          generationMethod: d.generation_method,
+          heatmapUrl: d.heatmap_url,
+          details: d.details ? {
+            processingTime: d.details.processing_time,
+            modelVersion: d.details.model_version,
+            anomalies: d.details.anomalies,
+          } : null,
+        },
+        error: null,
+      };
+    }
+
+    return apiData;
   } catch (error) {
     console.error('[API Service] Error analyzing image:', error);
 

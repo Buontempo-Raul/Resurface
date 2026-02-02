@@ -35,7 +35,7 @@ class Settings(BaseSettings):
     ALLOWED_MIME_TYPES: List[str] = ["image/jpeg", "image/png"]
     
     # Detection Settings
-    USE_MOCK_DETECTOR: bool = True  # Set to False when real model is ready
+    USE_MOCK_DETECTOR: bool = False  # Set to False when real model is ready
     MODEL_PATH: str = "models/detector_model.pth"  # Path to trained model
     MODEL_VERSION: str = "MockModel v1.0"
     
