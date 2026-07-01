@@ -11,8 +11,6 @@ python-multipart==0.0.6
 # Utilities
 python-dotenv==1.0.0
 
-# AI Model Dependencies
-torch>=2.0.0
-torchvision>=0.15.0
+# AI Model Dependencies (torch & torchvision are in the Docker base image)
 numpy>=1.24.0
 huggingface-hub>=0.20.0

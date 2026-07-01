@@ -1,18 +1,14 @@
-# Use an official Python runtime as a parent image
+# Use Python slim base image
 FROM python:3.11-slim
 
 # Set the working directory in the container
 WORKDIR /app
 
-# Install system dependencies
-# build-essential is often needed for compiling Python packages
-# libgl1-mesa-glx is needed for OpenCV if it's ever used
-RUN apt-get update && apt-get install -y \
-    build-essential \
-    && rm -rf /var/lib/apt/lists/*
-
 # Copy the requirements file into the container at /app
 COPY requirements.txt .
+
+# Install CPU-only PyTorch first (much smaller than full PyTorch)
+RUN pip install --no-cache-dir torch torchvision --index-url https://download.pytorch.org/whl/cpu
 
 # Install any needed packages specified in requirements.txt
 # Using increased timeout for large PyTorch downloads
