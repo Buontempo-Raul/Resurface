@@ -2,9 +2,37 @@
  * Utility functions for file validation and handling
  */
 
-// Allowed file types and size limits
+/**
+ * Generates a JPEG thumbnail data-URL from an existing data-URL.
+ * Scales down so the longest dimension is at most maxSize, preserving aspect ratio.
+ * @param {string} dataUrl
+ * @param {number} maxSize
+ * @returns {Promise<string|null>}
+ */
+export const generateThumbnail = (dataUrl, maxSize = 400) =>
+  new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => {
+      const scale = Math.min(maxSize / img.width, maxSize / img.height, 1);
+      const w = Math.round(img.width * scale);
+      const h = Math.round(img.height * scale);
+      const canvas = document.createElement('canvas');
+      canvas.width = w;
+      canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      resolve(canvas.toDataURL('image/jpeg', 0.75));
+    };
+    img.onerror = () => resolve(null);
+    img.src = dataUrl;
+  });
+
+// Image constraints
 export const ALLOWED_FORMATS = ['image/jpeg', 'image/jpg', 'image/png'];
-export const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB in bytes
+export const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
+
+// Video constraints
+export const ALLOWED_VIDEO_FORMATS = ['video/mp4', 'video/quicktime', 'video/x-msvideo', 'video/webm', 'video/x-matroska'];
+export const MAX_VIDEO_SIZE = 200 * 1024 * 1024; // 200 MB
 
 /**
  * Validates if a file is an allowed image format
@@ -23,6 +51,68 @@ export const isValidImageFormat = (file) => {
 export const isValidFileSize = (file) => {
   return file.size <= MAX_FILE_SIZE;
 };
+
+/**
+ * Validates a video file for format and size.
+ * Falls back to extension check when the browser doesn't set a MIME type.
+ * @param {File} file
+ * @returns {{valid: boolean, error: string|null}}
+ */
+export const validateVideoFile = (file) => {
+  const byMime = ALLOWED_VIDEO_FORMATS.includes(file.type.toLowerCase());
+  const byExt = /\.(mp4|mov|avi|webm|mkv)$/i.test(file.name);
+  if (!byMime && !byExt) {
+    return { valid: false, error: 'Invalid format. Supported video formats: MP4, MOV, AVI, WebM, MKV.' };
+  }
+  if (file.size > MAX_VIDEO_SIZE) {
+    return { valid: false, error: 'Video too large. Maximum size is 200 MB.' };
+  }
+  return { valid: true, error: null };
+};
+
+/**
+ * Generates a JPEG thumbnail from a video File by seeking to 25% of duration.
+ * @param {File} file
+ * @returns {Promise<string|null>}
+ */
+export const generateVideoThumbnail = (file) =>
+  new Promise((resolve) => {
+    const video = document.createElement('video');
+    const url = URL.createObjectURL(file);
+    let settled = false;
+
+    const finish = (result) => {
+      if (settled) return;
+      settled = true;
+      try { URL.revokeObjectURL(url); } catch (_) {}
+      resolve(result);
+    };
+
+    video.muted = true;
+    video.preload = 'metadata';
+    video.playsInline = true;
+
+    video.addEventListener('loadedmetadata', () => {
+      video.currentTime = Math.min(1, (video.duration || 4) * 0.25);
+    });
+
+    video.addEventListener('seeked', () => {
+      try {
+        const canvas = document.createElement('canvas');
+        canvas.width = video.videoWidth || 320;
+        canvas.height = video.videoHeight || 240;
+        canvas.getContext('2d').drawImage(video, 0, 0);
+        finish(canvas.toDataURL('image/jpeg', 0.8));
+      } catch (_) {
+        finish(null);
+      }
+    });
+
+    video.addEventListener('error', () => finish(null));
+    setTimeout(() => finish(null), 8000);
+
+    video.src = url;
+  });
 
 /**
  * Validates a file for both format and size
@@ -101,9 +191,13 @@ export const formatConfidence = (confidence) => {
  */
 export const getVerdictColor = (isFake, confidence) => {
   if (isFake) {
-    return confidence > 80 ? 'text-red-600' : 'text-orange-600';
+    return confidence > 80
+      ? 'text-red-600 dark:text-red-400'
+      : 'text-orange-600 dark:text-orange-400';
   }
-  return confidence > 80 ? 'text-green-600' : 'text-yellow-600';
+  return confidence > 80
+    ? 'text-green-600 dark:text-green-400'
+    : 'text-yellow-600 dark:text-yellow-400';
 };
 
 /**
@@ -114,7 +208,11 @@ export const getVerdictColor = (isFake, confidence) => {
  */
 export const getVerdictBgColor = (isFake, confidence) => {
   if (isFake) {
-    return confidence > 80 ? 'bg-red-50' : 'bg-orange-50';
+    return confidence > 80
+      ? 'bg-red-50 dark:bg-red-900/20'
+      : 'bg-orange-50 dark:bg-orange-900/20';
   }
-  return confidence > 80 ? 'bg-green-50' : 'bg-yellow-50';
+  return confidence > 80
+    ? 'bg-green-50 dark:bg-green-900/20'
+    : 'bg-yellow-50 dark:bg-yellow-900/20';
 };

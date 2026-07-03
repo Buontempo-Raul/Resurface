@@ -1,63 +1,43 @@
-"""
-Configuration module for the Deepfake Detection API
-
-This module manages all application settings using pydantic-settings
-for environment variable management.
-"""
-
 from pydantic_settings import BaseSettings
 from typing import List
 
 
 class Settings(BaseSettings):
-    """Application settings with environment variable support"""
-    
-    # API Settings
-    API_TITLE: str = "Deepfake Detection API"
+    API_TITLE: str = "Resurface Deepfake Detection API"
     API_VERSION: str = "1.0.0"
-    API_DESCRIPTION: str = "AI-powered deepfake image detection service"
-    
-    # Server Settings
+    API_DESCRIPTION: str = "Deepfake image detection using the Resurface cascade (DINOv2 + Swin)"
+
     HOST: str = "0.0.0.0"
     PORT: int = 8000
     DEBUG: bool = True
-    
-    # CORS Settings
+
     CORS_ORIGINS: List[str] = [
         "http://localhost:3000",
         "http://localhost:3001",
         "http://127.0.0.1:3000",
     ]
-    
-    # File Upload Settings
-    MAX_FILE_SIZE: int = 10 * 1024 * 1024  # 10MB in bytes
-    ALLOWED_EXTENSIONS: List[str] = [".jpg", ".jpeg", ".png"]
-    ALLOWED_MIME_TYPES: List[str] = ["image/jpeg", "image/png"]
-    
-    # Detection Settings
-    USE_MOCK_DETECTOR: bool = False  # Set to False when real model is ready
-    MODEL_PATH: str = "models/detector_model.pth"  # Path to trained model
-    MODEL_VERSION: str = "MockModel v1.0"
-    
-    # Processing Settings
-    INFERENCE_TIMEOUT: int = 30  # seconds
-    BATCH_SIZE: int = 1  # For future batch processing
-    
-    # EfficientNet Settings
-    EFFICIENTNET_MODEL: str = "efficientnet_b0"
-    EFFICIENTNET_THRESHOLD: float = 0.5
-    
-    # Rate Limiting (requests per minute)
-    RATE_LIMIT: int = 60
 
-    # FatFormer Settings (for AI model integration)
-    FATFORMER_PATH: str = "FatFormer"
-    CLIP_MODEL_PATH: str = "FatFormer/pretrained/ViT-L-14.pt"
+    MAX_FILE_SIZE: int = 20 * 1024 * 1024  # 20 MB
+    ALLOWED_EXTENSIONS: List[str] = [".jpg", ".jpeg", ".png", ".webp"]
+    ALLOWED_MIME_TYPES: List[str] = ["image/jpeg", "image/png", "image/webp"]
+
+    VIDEO_MAX_FILE_SIZE: int = 200 * 1024 * 1024  # 200 MB
+    VIDEO_N_FRAMES: int = 8  # frames sampled evenly from the video
+
+    # Resurface cascade — model paths
+    DINOV2_MODEL_PATH: str = "models/dinov2_binary.pt"
+    SWIN_CLF_MODEL_PATH: str = "models/swin_base_classifier37_method.pt"
+
+    # Resurface cascade — calibrated thresholds
+    BINARY_THRESHOLD: float = 0.523   # Youden optimum, DINOv2 binary
+    OOD_ENTROPY_THRESHOLD: float = 0.365  # P99_image, Swin family entropy
+
+    INFERENCE_TIMEOUT: int = 30
+    RATE_LIMIT: int = 60
 
     class Config:
         env_file = ".env"
         case_sensitive = True
 
 
-# Global settings instance
 settings = Settings()

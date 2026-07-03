@@ -1,0 +1,32 @@
+{
+  "_comment": "Known markers left by AI generation/editing tools in image metadata (EXIF Software/UserComment/ImageDescription/Artist, PNG tEXt/iTXt keys or values, XMP CreatorTool). Case-insensitive substring match. Extend this list as new tools are identified — no code changes required.",
+  "tool_markers": [
+    "stable diffusion",
+    "stable-diffusion",
+    "sdxl",
+    "sd3",
+    "midjourney",
+    "dall-e",
+    "dalle",
+    "comfyui",
+    "automatic1111",
+    "novelai",
+    "leonardo.ai",
+    "adobe firefly",
+    "runwayml",
+    "synthesia",
+    "heygen",
+    "deepfacelab",
+    "faceswap",
+    "reface",
+    "lensa",
+    "remini ai",
+    "artbreeder",
+    "deep dream generator"
+  ],
+  "digital_source_type_markers": [
+    "trainedalgorithmicmedia",
+    "compositesynthetic",
+    "algorithmicmedia"
+  ]
+}

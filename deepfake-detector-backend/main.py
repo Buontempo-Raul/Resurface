@@ -21,11 +21,11 @@ app = FastAPI(
     redoc_url="/redoc"
 )
 
-# Configure CORS
+# Configure CORS — allow all origins (includes chrome-extension:// for the browser extension)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.CORS_ORIGINS,
-    allow_credentials=True,
+    allow_origins=["*"],
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -68,11 +68,10 @@ async def startup_event():
     print("=" * 60)
     print(f"🚀 {settings.API_TITLE} v{settings.API_VERSION}")
     print("=" * 60)
-    print(f"📝 Mode: {'MOCK' if settings.USE_MOCK_DETECTOR else 'PRODUCTION'}")
     print(f"🌐 CORS: {', '.join(settings.CORS_ORIGINS)}")
     print(f"📊 Max file size: {settings.MAX_FILE_SIZE / (1024 * 1024):.1f}MB")
     print(f"📁 Allowed formats: {', '.join(settings.ALLOWED_EXTENSIONS)}")
-    print(f"🔍 Model version: {settings.MODEL_VERSION}")
+    print(f"🔬 Binary threshold: {settings.BINARY_THRESHOLD} | OOD entropy: {settings.OOD_ENTROPY_THRESHOLD}")
     print("=" * 60)
     print(f"📖 API Documentation: http://localhost:{settings.PORT}/docs")
     print("=" * 60)

@@ -1,6 +1,5 @@
 /**
  * Type definitions for the Resurface application
- * These are JSDoc types for JavaScript (not TypeScript)
  */
 
 /**
@@ -13,30 +12,19 @@
  */
 
 /**
+ * @typedef {Object} ImageCascadeResult
+ * @property {boolean} isFake - Whether the image is detected as deepfake
+ * @property {number} fakeProbability - DINOv2 fake probability (0–1)
+ * @property {string|null} family - Deepfake family (gan, diffusion, faceswap, reenactment, talking), or null
+ * @property {string|null} method - Specific deepfake method, or null if real or OOD
+ * @property {boolean} isUnknownMethod - True when generation method is OOD (entropy > threshold)
+ * @property {number} familyEntropy - Swin family distribution entropy
+ */
+
+/**
  * @typedef {Object} AnalysisResult
- * @property {boolean} isFake - Whether the image is detected as fake
- * @property {number} confidence - Confidence score (0-100)
- * @property {string|null} generationMethod - Detected generation method (GAN, Diffusion, Face Swap, etc.)
- * @property {string|null} heatmapUrl - URL to heatmap visualization
- * @property {AnalysisDetails} details - Additional analysis details
- */
-
-/**
- * @typedef {Object} AnalysisDetails
- * @property {number} processingTime - Time taken in milliseconds
- * @property {string} modelVersion - Version of the detection model used
- * @property {AnomalyRegion[]} anomalies - Detected anomaly regions
- */
-
-/**
- * @typedef {Object} AnomalyRegion
- * @property {string} region - Region name (eyes, mouth, skin, etc.)
- * @property {number} score - Anomaly score for this region (0-100)
- */
-
-/**
- * @typedef {Object} ApiAnalysisRequest
- * @property {File} image - Image file to analyze
+ * @property {ImageCascadeResult} imageResult - Cascade detection result
+ * @property {number} processingTimeMs - Time taken in milliseconds
  */
 
 /**

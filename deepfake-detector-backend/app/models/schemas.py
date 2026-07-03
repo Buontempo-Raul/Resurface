@@ -1,68 +1,91 @@
-"""
-Pydantic models for request/response validation
-
-These models define the structure of data exchanged between
-the frontend and backend, ensuring type safety and validation.
-"""
-
 from pydantic import BaseModel, Field
-from typing import List, Optional
+from typing import Optional, List
 
 
-class AnomalyRegion(BaseModel):
-    """Detected anomaly in a specific facial region"""
-    region: str = Field(..., description="Name of the facial region (e.g., 'Eyes', 'Mouth')")
-    score: float = Field(..., ge=0, le=100, description="Anomaly score for this region (0-100)")
-
-
-class AnalysisDetails(BaseModel):
-    """Detailed analysis information"""
-    processing_time: float = Field(..., description="Processing time in milliseconds")
-    model_version: str = Field(..., description="Version of the detection model used")
-    anomalies: List[AnomalyRegion] = Field(default_factory=list, description="List of detected anomalies")
+class ImageCascadeResult(BaseModel):
+    is_fake: bool
+    fake_probability: float = Field(..., ge=0.0, le=1.0)
+    family: Optional[str] = None
+    method: Optional[str] = None
+    is_unknown_method: bool
+    family_entropy: float
+    face_source: str = "face"           # 'face' | 'fallback'
+    face_bbox: Optional[List[int]] = None  # [x1, y1, x2, y2] raw MTCNN pixels, None on fallback
 
 
 class AnalysisResult(BaseModel):
-    """Analysis result for a single image"""
-    is_fake: bool = Field(..., description="True if image is detected as deepfake")
-    confidence: float = Field(..., ge=0, le=100, description="Confidence score (0-100)")
-    generation_method: Optional[str] = Field(None, description="Detected generation method (GAN, Diffusion, Face Swap)")
-    heatmap_url: Optional[str] = Field(None, description="URL to heatmap visualization")
-    details: AnalysisDetails = Field(..., description="Additional analysis details")
+    image_result: ImageCascadeResult
+    processing_time_ms: float
 
 
 class AnalysisResponse(BaseModel):
-    """API response for image analysis"""
-    success: bool = Field(..., description="Whether the analysis was successful")
-    data: Optional[AnalysisResult] = Field(None, description="Analysis result data")
-    error: Optional[str] = Field(None, description="Error message if analysis failed")
-    
-    class Config:
-        json_schema_extra = {
-            "example": {
-                "success": True,
-                "data": {
-                    "is_fake": True,
-                    "confidence": 87.5,
-                    "generation_method": "GAN",
-                    "heatmap_url": None,
-                    "details": {
-                        "processing_time": 1234.56,
-                        "model_version": "MockModel v1.0",
-                        "anomalies": [
-                            {"region": "Eyes", "score": 78.3},
-                            {"region": "Mouth", "score": 65.2}
-                        ]
-                    }
-                },
-                "error": None
-            }
-        }
+    success: bool
+    data: Optional[AnalysisResult] = None
+    error: Optional[str] = None
+
+
+class VideoAnalysisResult(BaseModel):
+    image_result: ImageCascadeResult
+    processing_time_ms: float
+    frames_analyzed: int
+    fake_frames: int
+    frame_p_fakes: List[float]
+    model_used: str = "cascade"
+
+
+class VideoAnalysisResponse(BaseModel):
+    success: bool
+    data: Optional[VideoAnalysisResult] = None
+    error: Optional[str] = None
+
+
+class FaceInfo(BaseModel):
+    bbox_px: List[int]   # [x1, y1, x2, y2] raw MTCNN pixels
+
+
+class FaceDetectResult(BaseModel):
+    faces: List[FaceInfo]
+    face_count: int
+    image_width: int
+    image_height: int
+
+
+class FaceDetectResponse(BaseModel):
+    success: bool
+    data: Optional[FaceDetectResult] = None
+    error: Optional[str] = None
 
 
 class HealthResponse(BaseModel):
-    """API health check response"""
-    status: str = Field(..., description="API status")
-    version: str = Field(..., description="API version")
-    model_loaded: bool = Field(..., description="Whether the detection model is loaded")
-    model_version: str = Field(..., description="Version of the loaded model")
+    status: str
+    version: str
+    model_loaded: bool
+    model_version: str
+
+
+class MetadataMarker(BaseModel):
+    source: str          # 'exif' | 'png_text' | 'xmp' | 'c2pa'
+    field: str
+    matched: str
+    raw_excerpt: str
+
+
+class MetadataSummary(BaseModel):
+    has_exif: bool
+    has_png_text: bool
+    has_xmp: bool
+    has_container_tags: bool = False   # video only (MP4/MOV/AVI/WebM/MKV container tags)
+    software_tag: Optional[str] = None
+    timestamp_inconsistency: bool = False
+
+
+class MetadataAnalysisResult(BaseModel):
+    status: str          # 'ai_markers_detected' | 'no_metadata' | 'metadata_present_no_markers'
+    markers_found: List[MetadataMarker]
+    metadata_summary: MetadataSummary
+
+
+class MetadataAnalysisResponse(BaseModel):
+    success: bool
+    data: Optional[MetadataAnalysisResult] = None
+    error: Optional[str] = None

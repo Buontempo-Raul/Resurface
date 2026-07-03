@@ -1,208 +1,159 @@
 import { useState, useCallback } from 'react';
-import { validateFile, createFilePreview, generateId } from '../utils/fileUtils';
-import { analyzeImage } from '../services/api';
+import {
+  validateFile, validateVideoFile,
+  createFilePreview, generateVideoThumbnail,
+  generateId,
+} from '../utils/fileUtils';
+import { analyzeImage, analyzeVideo, analyzeMetadata, analyzeVideoMetadata } from '../services/api';
 
-/**
- * Custom hook for managing image analysis state and operations
- */
+const isVideoFile = (file) =>
+  file.type.startsWith('video/') || /\.(mp4|mov|avi|webm|mkv)$/i.test(file.name);
+
 export const useImageAnalysis = () => {
   const [images, setImages] = useState([]);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [progress, setProgress] = useState({ current: 0, total: 0 });
 
-  /**
-   * Adds new images to the analysis queue
-   * @param {FileList|File[]} files - Files to add
-   * @returns {Promise<{added: number, rejected: {file: string, reason: string}[]}>}
-   */
   const addImages = useCallback(async (files) => {
     const fileArray = Array.from(files);
     const results = { added: 0, rejected: [] };
-
-    const newImages = [];
+    const newItems = [];
 
     for (const file of fileArray) {
-      const validation = validateFile(file);
-      
+      const video = isVideoFile(file);
+      const validation = video ? validateVideoFile(file) : validateFile(file);
+
       if (!validation.valid) {
-        results.rejected.push({
-          file: file.name,
-          reason: validation.error,
-        });
+        results.rejected.push({ file: file.name, reason: validation.error });
         continue;
       }
 
       try {
-        const preview = await createFilePreview(file);
-        newImages.push({
+        const preview = video
+          ? await generateVideoThumbnail(file)
+          : await createFilePreview(file);
+
+        newItems.push({
           id: generateId(),
           file,
           preview,
+          fileType: video ? 'video' : 'image',
           status: 'pending',
           result: null,
         });
         results.added++;
-      } catch (error) {
-        results.rejected.push({
-          file: file.name,
-          reason: 'Failed to create preview',
-        });
+      } catch (_) {
+        results.rejected.push({ file: file.name, reason: 'Failed to create preview' });
       }
     }
 
-    setImages(prev => [...prev, ...newImages]);
+    setImages((prev) => [...prev, ...newItems]);
     return results;
   }, []);
 
-  /**
-   * Removes an image from the list
-   * @param {string} imageId - ID of image to remove
-   */
-  const removeImage = useCallback((imageId) => {
-    setImages(prev => prev.filter(img => img.id !== imageId));
+  const removeImage = useCallback((id) => {
+    setImages((prev) => prev.filter((img) => img.id !== id));
   }, []);
 
-  /**
-   * Clears all images
-   */
   const clearAllImages = useCallback(() => {
     setImages([]);
     setProgress({ current: 0, total: 0 });
   }, []);
 
-  /**
-   * Analyzes all pending images
-   */
+  const _runAnalysis = async (item) => {
+    const isVideo = item.fileType === 'video';
+
+    // Metadata analysis is an independent, informational module — it runs in
+    // parallel with the cascade/AltFreezing and never fails the overall analysis.
+    const [primaryResponse, metadataResponse] = await Promise.all([
+      isVideo ? analyzeVideo(item.file) : analyzeImage(item.file),
+      isVideo ? analyzeVideoMetadata(item.file) : analyzeMetadata(item.file),
+    ]);
+
+    if (!primaryResponse.success) return primaryResponse;
+
+    return {
+      ...primaryResponse,
+      data: {
+        ...primaryResponse.data,
+        metadataResult: metadataResponse.success ? metadataResponse.data : null,
+      },
+    };
+  };
+
   const analyzeAllImages = useCallback(async () => {
-    const pendingImages = images.filter(img => img.status === 'pending');
-    
-    if (pendingImages.length === 0) {
-      return;
-    }
+    const pending = images.filter((img) => img.status === 'pending');
+    if (!pending.length) return;
 
     setIsAnalyzing(true);
-    setProgress({ current: 0, total: pendingImages.length });
+    setProgress({ current: 0, total: pending.length });
 
-    for (let i = 0; i < pendingImages.length; i++) {
-      const image = pendingImages[i];
-      
-      // Update status to analyzing
-      setImages(prev => 
-        prev.map(img => 
-          img.id === image.id 
-            ? { ...img, status: 'analyzing' }
-            : img
-        )
+    for (let i = 0; i < pending.length; i++) {
+      const item = pending[i];
+
+      setImages((prev) =>
+        prev.map((img) => (img.id === item.id ? { ...img, status: 'analyzing' } : img))
       );
 
       try {
-        const response = await analyzeImage(image.file);
-        
-        if (response.success) {
-          setImages(prev =>
-            prev.map(img =>
-              img.id === image.id
-                ? { ...img, status: 'completed', result: response.data }
-                : img
-            )
-          );
-        } else {
-          setImages(prev =>
-            prev.map(img =>
-              img.id === image.id
-                ? { ...img, status: 'error', result: { error: response.error } }
-                : img
-            )
-          );
-        }
-      } catch (error) {
-        setImages(prev =>
-          prev.map(img =>
-            img.id === image.id
-              ? { ...img, status: 'error', result: { error: error.message } }
+        const response = await _runAnalysis(item);
+        setImages((prev) =>
+          prev.map((img) =>
+            img.id === item.id
+              ? { ...img, status: response.success ? 'completed' : 'error', result: response.success ? response.data : { error: response.error } }
               : img
+          )
+        );
+      } catch (err) {
+        setImages((prev) =>
+          prev.map((img) =>
+            img.id === item.id ? { ...img, status: 'error', result: { error: err.message } } : img
           )
         );
       }
 
-      setProgress({ current: i + 1, total: pendingImages.length });
+      setProgress({ current: i + 1, total: pending.length });
     }
 
     setIsAnalyzing(false);
-  }, [images]);
+  }, [images]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  /**
-   * Re-analyzes a specific image
-   * @param {string} imageId - ID of image to re-analyze
-   */
   const reanalyzeImage = useCallback(async (imageId) => {
-    const image = images.find(img => img.id === imageId);
-    if (!image) return;
+    const item = images.find((img) => img.id === imageId);
+    if (!item) return;
 
-    setImages(prev =>
-      prev.map(img =>
-        img.id === imageId
-          ? { ...img, status: 'analyzing', result: null }
-          : img
-      )
+    setImages((prev) =>
+      prev.map((img) => (img.id === imageId ? { ...img, status: 'analyzing', result: null } : img))
     );
 
     try {
-      const response = await analyzeImage(image.file);
-      
-      if (response.success) {
-        setImages(prev =>
-          prev.map(img =>
-            img.id === imageId
-              ? { ...img, status: 'completed', result: response.data }
-              : img
-          )
-        );
-      } else {
-        setImages(prev =>
-          prev.map(img =>
-            img.id === imageId
-              ? { ...img, status: 'error', result: { error: response.error } }
-              : img
-          )
-        );
-      }
-    } catch (error) {
-      setImages(prev =>
-        prev.map(img =>
+      const response = await _runAnalysis(item);
+      setImages((prev) =>
+        prev.map((img) =>
           img.id === imageId
-            ? { ...img, status: 'error', result: { error: error.message } }
+            ? { ...img, status: response.success ? 'completed' : 'error', result: response.success ? response.data : { error: response.error } }
             : img
         )
       );
+    } catch (err) {
+      setImages((prev) =>
+        prev.map((img) =>
+          img.id === imageId ? { ...img, status: 'error', result: { error: err.message } } : img
+        )
+      );
     }
-  }, [images]);
+  }, [images]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  /**
-   * Gets statistics about current images
-   */
   const getStats = useCallback(() => {
-    const stats = {
-      total: images.length,
-      pending: 0,
-      analyzing: 0,
-      completed: 0,
-      error: 0,
-      fake: 0,
-      real: 0,
-    };
-
-    images.forEach(img => {
+    const stats = { total: 0, pending: 0, analyzing: 0, completed: 0, error: 0, fake: 0, real: 0 };
+    images.forEach((img) => {
+      stats.total++;
       stats[img.status]++;
-      if (img.status === 'completed' && img.result) {
-        if (img.result.isFake) {
-          stats.fake++;
-        } else {
-          stats.real++;
-        }
+      if (img.status === 'completed' && img.result?.imageResult) {
+        if (img.result.imageResult.isFake) stats.fake++;
+        else stats.real++;
       }
     });
-
     return stats;
   }, [images]);
 
