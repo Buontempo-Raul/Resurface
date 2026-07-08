@@ -1,0 +1,140 @@
+@function pxToRem($pixel) {
+  @return $pixel / 16 + rem;
+}
+
+.main {
+  align-items: center;
+  background: url("https://assets.codepen.io/204808/berkay-gumustekin-ngqyo2AYYnE-unsplash%281%29.jpg")
+    center / cover no-repeat;
+  display: flex;
+  justify-content: center;
+  min-height: 100vh;
+  min-width: 100vw;
+}
+
+.heading {
+  color: #fff;
+  font-size: clamp(3.125rem, 8.083vw + 1.033rem, 7.5rem);
+  line-height: clamp(3.75rem, 6.928vw + 1.957rem, 7.5rem);
+  position: fixed;
+  top: pxToRem(20);
+}
+
+.liquid-glass {
+  --glass-size-w: #{pxToRem(270)};
+  --glass-size-h: #{pxToRem(270)};
+  --glass-padding: #{pxToRem(30)};
+  --border-radius: #{pxToRem(32)};
+  --transition: 0.4s cubic-bezier(0.5, 1.5, 0.5, 1);
+  --menu-gap: #{pxToRem(16)};
+  --icon-size: #{pxToRem(64)};
+  --icon-border-radius: #{pxToRem(16)};
+  --icon-padding: #{pxToRem(12)};
+
+  border-radius: var(--border-radius);
+  cursor: grab;
+  height: var(--glass-size-h);
+  padding: var(--glass-padding);
+  position: relative;
+  transition: width var(--transition), height var(--transition),
+    padding var(--transition);
+  width: var(--glass-size-w);
+
+  &.is-expanded {
+    --glass-size-w: #{pxToRem(550)};
+    --glass-size-h: #{pxToRem(700)};
+    --glass-padding: #{pxToRem(40)};
+  }
+}
+
+.liquid-glass--bend {
+  backdrop-filter: blur(3px);
+  border-radius: var(--border-radius);
+  filter: url(#glass-blur);
+  inset: 0;
+  position: absolute;
+  z-index: 0;
+}
+
+.liquid-glass--face {
+  border-radius: var(--border-radius);
+  box-shadow: 0 4px 4px rgba(0, 0, 0, 0.15), 0 0 12px rgba(0, 0, 0, 0.08);
+  inset: 0;
+  position: absolute;
+  z-index: 1;
+}
+
+.liquid-glass--edge {
+  border-radius: var(--border-radius);
+  box-shadow: inset 3px 3px 3px 0 rgba(255, 255, 255, 0.45),
+    inset -3px -3px 3px 0 rgba(255, 255, 255, 0.45);
+  inset: 0;
+  position: absolute;
+  z-index: 2;
+}
+
+.liquid-glass__menus {
+  display: flex;
+  gap: var(--menu-gap);
+  transition: gap var(--transition);
+
+  .is-expanded & {
+    --menu-gap: #{pxToRem(32)};
+  }
+}
+
+.liquid-glass__link {
+  border-radius: var(--icon-border-radius);
+  box-shadow: inset 1px 1px 1px 0 rgba(255, 255, 255, 0.45),
+    inset -1px -1px 1px 0 rgba(255, 255, 255, 0.45);
+  display: flex;
+  height: var(--icon-size);
+  padding: var(--icon-padding);
+  pointer-events: none;
+  transition: width var(--transition), height var(--transition),
+    border-radius var(--transition);
+  width: var(--icon-size);
+  z-index: 3;
+
+  .is-expanded & {
+    --icon-size: #{pxToRem(128)};
+    --icon-border-radius: #{pxToRem(32)};
+    --icon-padding: #{pxToRem(24)};
+    cursor: default;
+    pointer-events: auto;
+    box-shadow: inset 1px 2px 2px 0 rgba(255, 255, 255, 0.45),
+      inset -1px -2px 2px 0 rgba(255, 255, 255, 0.45);
+  }
+}
+
+.link-linkedin {
+  background: #1a76ad;
+  background: linear-gradient(
+    90deg,
+    rgba(26, 118, 173, 1) 0%,
+    rgba(40, 142, 201, 1) 100%
+  );
+}
+
+.link-frontendly {
+  // background: #a82dfb;
+  background: #262626;
+  background: linear-gradient(
+    90deg,
+    rgba(38, 38, 38, 1) 0%,
+    rgba(48, 48, 48, 1) 100%
+  );
+}
+
+.description {
+  bottom: pxToRem(50);
+  color: #fff;
+  font-family: "Open Sans", sans-serif;
+  font-optical-sizing: auto;
+  font-size: pxToRem(24);
+  left: 50%;
+  position: fixed;
+  text-align: center;
+  transform: translateX(-50%);
+}
+

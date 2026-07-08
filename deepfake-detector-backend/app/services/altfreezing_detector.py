@@ -2,7 +2,8 @@
 AltFreezing v3 detector wrapper.
 
 Loads the I3D8x8 + TimeTransformer model trained on face-swap/reenactment data.
-Pipeline (identical to the research evaluation script):
+Pipeline (identical to the research evaluation script), applied across the
+full duration of the video (not just a leading window):
   video bytes → frames at Δt=0.1s → non-overlapping clips of 8 frames
   → MTCNN on clip[0] (strategy C: same box for all 8 frames)
   → I3D8x8 → sigmoid(logit) → mean(p_fake per clip)
@@ -175,15 +176,18 @@ class AltFreezingDetector:
 
     # ── internal helpers ──────────────────────────────────────────────────────
 
-    def _extract_frames(self, video_path: str, max_frames: int) -> List[np.ndarray]:
+    def _iter_clips(self, video_path: str):
+        """Stream non-overlapping N_FRAMES-frame clips sampled at Δt=DT_SECONDS
+        across the *entire* video duration. Yields clips one at a time so peak
+        memory stays at O(N_FRAMES) regardless of how long the video is."""
         cap = cv2.VideoCapture(video_path)
         if not cap.isOpened():
-            return []
+            return
         fps  = cap.get(cv2.CAP_PROP_FPS)
         fps  = fps if fps and fps > 0 and not np.isnan(fps) else 25.0
         step = max(1, int(round(fps * DT_SECONDS)))
 
-        frames, idx = [], 0
+        clip, idx = [], 0
         while True:
             ok = cap.grab()
             if not ok:
@@ -192,12 +196,12 @@ class AltFreezingDetector:
                 ret, frame = cap.retrieve()
                 if not ret:
                     break
-                frames.append(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
-                if len(frames) >= max_frames:
-                    break
+                clip.append(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
+                if len(clip) == N_FRAMES:
+                    yield clip
+                    clip = []
             idx += 1
         cap.release()
-        return frames
 
     def _face_box(self, frame_rgb: np.ndarray):
         img = Image.fromarray(frame_rgb)
@@ -247,7 +251,7 @@ class AltFreezingDetector:
 
     # ── public API ────────────────────────────────────────────────────────────
 
-    def detect(self, video_bytes: bytes, max_clips: int = 8) -> dict:
+    def detect(self, video_bytes: bytes) -> dict:
         import torch
         t0 = time.time()
 
@@ -255,41 +259,36 @@ class AltFreezingDetector:
             f.write(video_bytes)
             tmp = f.name
 
+        clip_scores = []
         try:
-            frames = self._extract_frames(tmp, max_frames=max_clips * N_FRAMES)
+            with torch.no_grad():
+                for seg in self._iter_clips(tmp):
+                    box   = self._face_box(seg[0])
+                    clip  = self._crop_clip(seg, box)
+                    t     = self._to_tensor(clip).to(self.device)
+                    out   = self.model(t)
+                    logit = out['final_output'].view(-1)[0]
+                    clip_scores.append(torch.sigmoid(logit.float()).item())
         finally:
             try:
                 os.unlink(tmp)
             except OSError:
                 pass
 
-        if len(frames) < N_FRAMES:
+        if not clip_scores:
             return {
                 'is_fake': False, 'fake_probability': 0.0,
                 'clips_analyzed': 0, 'clip_scores': [],
                 'processing_time_ms': (time.time() - t0) * 1000,
             }
 
-        n_clips      = min(max_clips, len(frames) // N_FRAMES)
-        clip_scores  = []
-
-        with torch.no_grad():
-            for c in range(n_clips):
-                seg   = frames[c * N_FRAMES:(c + 1) * N_FRAMES]
-                box   = self._face_box(seg[0])
-                clip  = self._crop_clip(seg, box)
-                t     = self._to_tensor(clip).to(self.device)
-                out   = self.model(t)
-                logit = out['final_output'].view(-1)[0]
-                clip_scores.append(torch.sigmoid(logit.float()).item())
-
-        arr      = np.array(clip_scores)
-        mean_p   = float(arr.mean())
+        arr    = np.array(clip_scores)
+        mean_p = float(arr.mean())
 
         return {
             'is_fake':            mean_p >= THRESHOLD,
             'fake_probability':   mean_p,
-            'clips_analyzed':     n_clips,
+            'clips_analyzed':     len(clip_scores),
             'clip_scores':        clip_scores,
             'processing_time_ms': (time.time() - t0) * 1000,
         }

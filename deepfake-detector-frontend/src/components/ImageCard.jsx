@@ -132,12 +132,12 @@ export const ResultDisplay = ({ result }) => {
               {isAltFreezing ? 'Clips' : 'Frames'}: {result.fakeFrames} / {result.framesAnalyzed} fake
             </span>
           </div>
-          <div className="flex gap-0.5 h-5 items-end">
+          <div className="flex gap-0.5 h-5 items-end overflow-x-auto">
             {result.framePFakes.map((p, i) => (
               <div
                 key={i}
                 title={`${isAltFreezing ? 'Clip' : 'Frame'} ${i + 1}: ${(p * 100).toFixed(0)}% fake`}
-                className={`flex-1 rounded-sm transition-all ${p >= 0.5 ? 'bg-red-500' : 'bg-green-500'}`}
+                className={`w-1.5 shrink-0 rounded-sm transition-all ${p >= 0.5 ? 'bg-red-500' : 'bg-green-500'}`}
                 style={{ height: `${Math.max(20, p * 100)}%` }}
               />
             ))}

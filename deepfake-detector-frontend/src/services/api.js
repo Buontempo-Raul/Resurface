@@ -91,7 +91,7 @@ export const analyzeVideo = async (file, onProgress = null) => {
     formData.append('video', file);
 
     const response = await apiClient.post('/analyze-video', formData, {
-      timeout: 180000, // 3 min — video takes longer
+      timeout: 600000, // 10 min — full video is now analyzed end-to-end, not just a leading window
       onUploadProgress: (progressEvent) => {
         if (onProgress && progressEvent.total) {
           const pct = Math.round((progressEvent.loaded * 100) / progressEvent.total);
