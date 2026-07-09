@@ -27,7 +27,7 @@ const DetailModal = ({ entry, onClose }) => {
       onClick={onClose}
     >
       <div
-        className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-sm overflow-hidden"
+        className="glass glass-strong rounded-xl shadow-2xl w-full max-w-sm overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="relative aspect-square bg-gray-100 dark:bg-gray-700">
@@ -40,7 +40,7 @@ const DetailModal = ({ entry, onClose }) => {
           )}
           <button
             onClick={onClose}
-            className="absolute top-2 right-2 p-1.5 bg-white dark:bg-gray-800 rounded-full shadow-md hover:bg-red-50 dark:hover:bg-red-900/30 transition-colors"
+            className="glass-chip absolute top-2 right-2 p-1.5 rounded-full transition-colors"
             aria-label="Close"
           >
             <X className="w-4 h-4 text-gray-600 dark:text-gray-300" />
@@ -137,10 +137,10 @@ export const HistoryPanel = ({ history, onClearHistory }) => {
 
   return (
     <>
-      <div className="mt-8 bg-white dark:bg-gray-800 rounded-lg shadow-md border border-gray-200 dark:border-gray-700">
+      <div className="glass mt-8 rounded-lg">
         <button
           onClick={() => setIsOpen((v) => !v)}
-          className="w-full flex items-center justify-between px-5 py-4 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors rounded-lg"
+          className="w-full flex items-center justify-between px-5 py-4 hover:bg-white/20 dark:hover:bg-white/5 transition-colors rounded-lg"
         >
           <div className="flex items-center gap-2">
             <Clock className="w-5 h-5 text-gray-500 dark:text-gray-400" />
@@ -170,7 +170,7 @@ export const HistoryPanel = ({ history, onClearHistory }) => {
               <button
                 onClick={onClearHistory}
                 title="Clear history"
-                className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                className="glass-chip p-2 rounded-lg text-gray-400 hover:text-red-500 transition-colors"
               >
                 <Trash2 className="w-4 h-4" />
               </button>

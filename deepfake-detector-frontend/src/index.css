@@ -39,3 +39,127 @@ input:focus-visible {
 .dark ::-webkit-scrollbar-track { background: #1f2937; }
 .dark ::-webkit-scrollbar-thumb { background: #4b5563; border-radius: 4px; }
 .dark ::-webkit-scrollbar-thumb:hover { background: #6b7280; }
+
+/* ============ Liquid glass ============ */
+@layer components {
+  :root {
+    --glass-tint: rgba(255, 255, 255, 0.55);
+    --glass-tint-strong: rgba(255, 255, 255, 0.72);
+    --glass-highlight: rgba(255, 255, 255, 0.85);
+    --glass-border: rgba(255, 255, 255, 0.45);
+    --glass-shadow: rgba(15, 23, 42, 0.15);
+    --glass-saturation: 160%;
+    --glass-blur: 20px;
+    --glass-primary-tint: rgba(2, 132, 199, 0.82);
+  }
+
+  .dark {
+    --glass-tint: rgba(30, 41, 59, 0.55);
+    --glass-tint-strong: rgba(23, 32, 46, 0.75);
+    --glass-highlight: rgba(255, 255, 255, 0.14);
+    --glass-border: rgba(255, 255, 255, 0.09);
+    --glass-shadow: rgba(0, 0, 0, 0.45);
+    --glass-saturation: 180%;
+    --glass-primary-tint: rgba(56, 189, 248, 0.55);
+  }
+
+  /* Liquid-glass surface: blur + saturation + specular rim. */
+  .glass {
+    position: relative;
+    isolation: isolate;
+    background: transparent;
+    overflow: hidden;
+  }
+
+  .glass::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    background: var(--glass-tint);
+    backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturation));
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturation));
+  }
+
+  .glass::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    box-shadow:
+      inset 1px 1px 0 var(--glass-highlight),
+      inset -1px -1px 0 var(--glass-border),
+      0 8px 30px var(--glass-shadow);
+  }
+
+  .glass-strong::before {
+    background: var(--glass-tint-strong);
+  }
+
+  /* Lightweight glass for repeated elements (cards, chips, pills): same blur +
+     tint as .glass, but no specular pseudo-element layer. */
+  .glass-chip {
+    background: var(--glass-tint);
+    backdrop-filter: blur(12px) saturate(var(--glass-saturation));
+    -webkit-backdrop-filter: blur(12px) saturate(var(--glass-saturation));
+    box-shadow: inset 0 1px 0 var(--glass-highlight), 0 4px 16px var(--glass-shadow);
+    transition: filter 150ms ease;
+  }
+
+  .glass-chip:hover:not(:disabled) {
+    filter: brightness(1.05) saturate(1.1);
+  }
+
+  .dark .glass-chip:hover:not(:disabled) {
+    filter: brightness(1.35);
+  }
+
+  .glass-chip:active:not(:disabled) {
+    filter: brightness(0.96);
+  }
+
+  /* Tinted glass for primary/call-to-action buttons: same frosted treatment as
+     .glass-chip, colored with the brand hue instead of neutral white/gray. */
+  .glass-btn-primary {
+    background: var(--glass-primary-tint);
+    backdrop-filter: blur(12px) saturate(var(--glass-saturation));
+    -webkit-backdrop-filter: blur(12px) saturate(var(--glass-saturation));
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5), inset 0 -1px 0 rgba(255, 255, 255, 0.12), 0 4px 16px var(--glass-shadow);
+    color: #fff;
+    transition: filter 150ms ease;
+  }
+
+  .glass-btn-primary:hover:not(:disabled) {
+    filter: brightness(1.08) saturate(1.1);
+  }
+
+  .glass-btn-primary:active:not(:disabled) {
+    filter: brightness(0.95);
+  }
+
+  .glass-btn-primary:disabled {
+    background: var(--glass-tint);
+    color: var(--glass-highlight);
+    box-shadow: none;
+  }
+
+  /* Fixed gradient behind the whole app so the glass surfaces have something
+     to blur — the flat gray background gave backdrop-filter nothing to work with. */
+  .app-background {
+    background:
+      radial-gradient(1200px circle at 12% 18%, rgba(14, 165, 233, 0.28), transparent 55%),
+      radial-gradient(1000px circle at 88% 12%, rgba(34, 197, 94, 0.16), transparent 50%),
+      radial-gradient(900px circle at 78% 88%, rgba(244, 63, 94, 0.13), transparent 55%),
+      linear-gradient(180deg, #f1f5f9 0%, #e2e8f0 100%);
+  }
+
+  .dark .app-background {
+    background:
+      radial-gradient(1200px circle at 12% 18%, rgba(56, 189, 248, 0.16), transparent 55%),
+      radial-gradient(1000px circle at 88% 12%, rgba(34, 197, 94, 0.10), transparent 50%),
+      radial-gradient(900px circle at 78% 88%, rgba(244, 63, 94, 0.10), transparent 55%),
+      linear-gradient(180deg, #0f172a 0%, #0a0f1a 100%);
+  }
+}

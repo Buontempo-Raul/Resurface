@@ -57,15 +57,15 @@ const ActionBar = ({ hasPendingImages, isAnalyzing, hasImages, hasCompleted, onA
   if (!hasImages) return null;
 
   return (
-    <div className="flex flex-wrap items-center justify-between gap-3 p-4 bg-white dark:bg-gray-800 rounded-lg shadow-md border border-gray-200 dark:border-gray-700">
+    <div className="glass flex flex-wrap items-center justify-between gap-3 p-4 rounded-lg">
       <div className="flex items-center gap-3">
         <button
           onClick={onAnalyze}
           disabled={!hasPendingImages || isAnalyzing}
           className={`flex items-center gap-2 px-6 py-2.5 rounded-lg font-medium transition-all ${
             hasPendingImages && !isAnalyzing
-              ? 'bg-primary-600 hover:bg-primary-700 text-white shadow-md hover:shadow-lg'
-              : 'bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400 cursor-not-allowed'
+              ? 'glass-btn-primary'
+              : 'glass-chip text-gray-500 dark:text-gray-400 cursor-not-allowed'
           }`}
         >
           <Play className="w-4 h-4" />
@@ -81,7 +81,7 @@ const ActionBar = ({ hasPendingImages, isAnalyzing, hasImages, hasCompleted, onA
         {hasCompleted && (
           <button
             onClick={onExport}
-            className="flex items-center gap-2 px-4 py-2 text-primary-600 dark:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-lg transition-colors"
+            className="glass-chip flex items-center gap-2 px-4 py-2 rounded-lg text-primary-600 dark:text-primary-400 transition-colors"
             title="Export results as CSV"
           >
             <Download className="w-4 h-4" />
@@ -91,7 +91,7 @@ const ActionBar = ({ hasPendingImages, isAnalyzing, hasImages, hasCompleted, onA
         <button
           onClick={onClearAll}
           disabled={isAnalyzing}
-          className="flex items-center gap-2 px-4 py-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="glass-chip flex items-center gap-2 px-4 py-2 rounded-lg text-red-600 dark:text-red-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <Trash2 className="w-4 h-4" />
           Clear All
@@ -115,8 +115,8 @@ const FilterBar = ({ filter, setFilter, sort, setSort, counts }) => (
           onClick={() => setFilter(key)}
           className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
             filter === key
-              ? 'bg-primary-600 text-white'
-              : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700'
+              ? 'glass-btn-primary'
+              : 'glass-chip text-gray-600 dark:text-gray-300'
           }`}
         >
           {label}
@@ -289,7 +289,8 @@ function App() {
   const hasCompleted = images.some((img) => img.status === 'completed' && img.result?.imageResult);
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen relative">
+      <div className="app-background fixed inset-0 -z-10" aria-hidden="true" />
       <Header />
 
       <main className="w-full px-4 sm:px-6 lg:px-8 py-8">
@@ -354,7 +355,7 @@ function App() {
         <HistoryPanel history={history} onClearHistory={clearHistory} />
       </main>
 
-      <footer className="mt-12 py-6 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+      <footer className="glass mt-12 py-6">
         <div className="w-full px-4 sm:px-6 lg:px-8">
           <p className="text-center text-sm text-gray-500 dark:text-gray-400">
             Resurface © 2026 • License Thesis Project • AI-Powered Image Analysis

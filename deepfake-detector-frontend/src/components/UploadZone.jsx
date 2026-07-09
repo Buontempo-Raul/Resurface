@@ -42,7 +42,7 @@ export const UploadZone = ({ onFilesAdded, disabled }) => {
         relative border-2 border-dashed rounded-lg p-12 text-center transition-all
         ${isDragging
           ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20'
-          : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 hover:border-gray-400 dark:hover:border-gray-500'
+          : 'border-gray-300 dark:border-gray-600 bg-white/40 dark:bg-white/5 backdrop-blur-md hover:border-gray-400 dark:hover:border-gray-500'
         }
         ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
       `}

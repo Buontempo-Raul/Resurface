@@ -98,7 +98,7 @@ export const ResultDisplay = ({ result }) => {
 
       {/* Family / method — shown when cascade has classified the fake (including AltFreezing+cascade hybrid) */}
       {isFake && (family || method || isUnknownMethod) && (
-        <div className="p-3 bg-gray-50 dark:bg-gray-700/60 rounded-lg space-y-1.5">
+        <div className="p-3 bg-white/50 dark:bg-white/5 backdrop-blur-sm rounded-lg space-y-1.5">
           {isUnknownMethod ? (
             <div className="flex items-center gap-2 flex-wrap">
               <AlertTriangle className="w-4 h-4 text-yellow-500 shrink-0" />
@@ -126,7 +126,7 @@ export const ResultDisplay = ({ result }) => {
 
       {/* Frame probability bar (video only) */}
       {result.framePFakes?.length > 0 && (
-        <div className="p-2.5 bg-gray-50 dark:bg-gray-700/60 rounded-lg">
+        <div className="p-2.5 bg-white/50 dark:bg-white/5 backdrop-blur-sm rounded-lg">
           <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 mb-1.5">
             <span>
               {isAltFreezing ? 'Clips' : 'Frames'}: {result.fakeFrames} / {result.framesAnalyzed} fake
@@ -179,7 +179,7 @@ export const ResultDisplay = ({ result }) => {
 
 export const ImageCard = ({ image, onRemove, onReanalyze, isAnalyzing }) => {
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden border border-gray-200 dark:border-gray-700 hover:shadow-lg transition-shadow">
+    <div className="glass-chip rounded-lg overflow-hidden hover:shadow-lg transition-shadow">
       <div className="relative aspect-square bg-gray-100 dark:bg-gray-700">
         <img
           src={image.preview}
@@ -196,7 +196,7 @@ export const ImageCard = ({ image, onRemove, onReanalyze, isAnalyzing }) => {
         )}
         <button
           onClick={() => onRemove(image.id)}
-          className="absolute top-2 right-2 p-1.5 bg-white dark:bg-gray-800 rounded-full shadow-md hover:bg-red-50 dark:hover:bg-red-900/30 transition-colors"
+          className="glass-chip absolute top-2 right-2 p-1.5 rounded-full transition-colors"
           aria-label="Remove image"
         >
           <X className="w-4 h-4 text-gray-600 dark:text-gray-300 hover:text-red-600" />
@@ -223,7 +223,7 @@ export const ImageCard = ({ image, onRemove, onReanalyze, isAnalyzing }) => {
           <button
             onClick={() => onReanalyze(image.id)}
             disabled={isAnalyzing}
-            className="mt-3 w-full flex items-center justify-center gap-2 px-3 py-2 bg-primary-600 hover:bg-primary-700 disabled:bg-gray-300 dark:disabled:bg-gray-600 disabled:cursor-not-allowed text-white text-sm font-medium rounded-lg transition-colors"
+            className="glass-btn-primary mt-3 w-full flex items-center justify-center gap-2 px-3 py-2 disabled:cursor-not-allowed text-sm font-medium rounded-lg"
           >
             <RefreshCw className="w-4 h-4" />
             Analyze
@@ -234,7 +234,7 @@ export const ImageCard = ({ image, onRemove, onReanalyze, isAnalyzing }) => {
           <button
             onClick={() => onReanalyze(image.id)}
             disabled={isAnalyzing}
-            className="mt-3 w-full flex items-center justify-center gap-2 px-3 py-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed text-gray-700 dark:text-gray-300 text-sm font-medium rounded-lg transition-colors"
+            className="mt-3 w-full flex items-center justify-center gap-2 px-3 py-2 glass-chip hover:brightness-95 dark:hover:brightness-125 disabled:opacity-50 disabled:cursor-not-allowed text-gray-700 dark:text-gray-300 text-sm font-medium rounded-lg transition-colors"
           >
             <RefreshCw className="w-4 h-4" />
             Re-analyze

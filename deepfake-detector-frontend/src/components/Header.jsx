@@ -1,6 +1,5 @@
 import { Moon, Sun, Github, Info } from 'lucide-react';
 import { useState, useEffect } from 'react';
-import logoSrc from '../../icons/icon.png';
 
 const FAMILY_INFO = [
   { name: 'Faceswap',     example: 'SimSwap, FaceShifter, DeepFakes', color: 'bg-orange-100 text-orange-700' },
@@ -26,21 +25,18 @@ const InfoModal = ({ isOpen, onClose }) => {
       onClick={onClose}
     >
       <div
-        className="bg-white dark:bg-gray-800 rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl"
+        className="glass glass-strong rounded-xl max-w-2xl w-full max-h-[90vh] overflow-hidden shadow-2xl flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="p-6">
+        <div className="p-6 overflow-y-auto">
           <div className="flex items-start justify-between mb-5">
-            <div className="flex items-center gap-3">
-              <img src={logoSrc} alt="Resurface" className="w-10 h-10 rounded-lg object-contain" />
-              <div>
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-white">About Resurface</h2>
-                <p className="text-sm text-gray-500 dark:text-gray-400">AI-Powered Deepfake Detection</p>
-              </div>
+            <div>
+              <h2 className="text-3xl font-bold text-gray-900 dark:text-white">About Resurface</h2>
+              <p className="text-sm text-gray-500 dark:text-gray-400">AI-Powered Deepfake Detection</p>
             </div>
             <button
               onClick={onClose}
-              className="p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+              className="glass-chip p-1.5 rounded-full text-gray-500 dark:text-gray-300 hover:text-gray-700 dark:hover:text-white transition-colors"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -139,7 +135,7 @@ const InfoModal = ({ isOpen, onClose }) => {
           <div className="mt-6 flex justify-end">
             <button
               onClick={onClose}
-              className="px-5 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors font-medium"
+              className="glass-btn-primary px-5 py-2 rounded-lg font-medium"
             >
               Got it
             </button>
@@ -167,25 +163,22 @@ export const Header = () => {
 
   return (
     <>
-      <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 shadow-sm">
+      <header className="glass sticky top-0 z-40">
         <div className="w-full px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <img src={logoSrc} alt="Resurface logo" className="w-10 h-10 rounded-lg object-contain" />
-              <div>
-                <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
-                  Resurface
-                </h1>
-                <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
-                  AI-Powered Image Analysis
-                </p>
-              </div>
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
+                Resurface
+              </h1>
+              <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
+                AI-Powered Image Analysis
+              </p>
             </div>
 
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-2">
               <button
                 onClick={() => setDark((v) => !v)}
-                className="p-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                className="glass-chip w-9 h-9 rounded-full flex items-center justify-center text-gray-600 dark:text-gray-300"
                 aria-label="Toggle dark mode"
                 title={dark ? 'Switch to light mode' : 'Switch to dark mode'}
               >
@@ -194,7 +187,7 @@ export const Header = () => {
 
               <button
                 onClick={() => setShowInfo(true)}
-                className="p-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                className="glass-chip w-9 h-9 rounded-full flex items-center justify-center text-gray-600 dark:text-gray-300"
                 aria-label="About Resurface"
                 title="About this app"
               >
@@ -205,7 +198,7 @@ export const Header = () => {
                 href="https://github.com/Buontempo-Raul/Resurface"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="p-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                className="glass-chip w-9 h-9 rounded-full flex items-center justify-center text-gray-600 dark:text-gray-300"
                 aria-label="GitHub Repository"
                 title="View on GitHub"
               >

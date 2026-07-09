@@ -1,18 +1,52 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import {
   validateFile, validateVideoFile,
   createFilePreview, generateVideoThumbnail,
   generateId,
 } from '../utils/fileUtils';
 import { analyzeImage, analyzeVideo, analyzeMetadata, analyzeVideoMetadata } from '../services/api';
+import { dbGetAll, dbPut, dbDelete, dbClear } from '../utils/imageDB';
 
 const isVideoFile = (file) =>
   file.type.startsWith('video/') || /\.(mp4|mov|avi|webm|mkv)$/i.test(file.name);
+
+// Only the fields needed to resurrect the queue after a reload — preview is
+// regenerated from the file itself rather than duplicated in storage.
+const toPersisted = ({ id, file, fileType, status, result, createdAt }) => ({
+  id, file, fileType, status, result, createdAt,
+});
 
 export const useImageAnalysis = () => {
   const [images, setImages] = useState([]);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [progress, setProgress] = useState({ current: 0, total: 0 });
+
+  // Restore the working queue (including the original File blobs) from
+  // IndexedDB on mount, so uploaded-but-not-yet-analyzed images and already
+  // -analyzed results survive a page reload.
+  useEffect(() => {
+    (async () => {
+      try {
+        const stored = await dbGetAll();
+        if (!stored.length) return;
+
+        stored.sort((a, b) => (a.createdAt ?? 0) - (b.createdAt ?? 0));
+
+        const restored = await Promise.all(
+          stored.map(async (item) => {
+            const preview = item.fileType === 'video'
+              ? await generateVideoThumbnail(item.file)
+              : await createFilePreview(item.file);
+            return { ...item, preview };
+          })
+        );
+        setImages(restored);
+      } catch (_) {
+        // IndexedDB unavailable (private mode, unsupported browser, etc.) —
+        // the queue just starts empty, same as before this feature existed.
+      }
+    })();
+  }, []);
 
   const addImages = useCallback(async (files) => {
     const fileArray = Array.from(files);
@@ -40,6 +74,7 @@ export const useImageAnalysis = () => {
           fileType: video ? 'video' : 'image',
           status: 'pending',
           result: null,
+          createdAt: Date.now(),
         });
         results.added++;
       } catch (_) {
@@ -48,16 +83,19 @@ export const useImageAnalysis = () => {
     }
 
     setImages((prev) => [...prev, ...newItems]);
+    newItems.forEach((item) => { dbPut(toPersisted(item)).catch(() => {}); });
     return results;
   }, []);
 
   const removeImage = useCallback((id) => {
     setImages((prev) => prev.filter((img) => img.id !== id));
+    dbDelete(id).catch(() => {});
   }, []);
 
   const clearAllImages = useCallback(() => {
     setImages([]);
     setProgress({ current: 0, total: 0 });
+    dbClear().catch(() => {});
   }, []);
 
   const _runAnalysis = async (item) => {
@@ -81,6 +119,14 @@ export const useImageAnalysis = () => {
     };
   };
 
+  // Persists the post-analysis status/result so a reload doesn't lose it.
+  // 'analyzing' is deliberately never persisted — if the page reloads mid-
+  // request, the last-known-good state on disk is still 'pending', which is
+  // exactly right since the in-flight request is gone.
+  const _persistOutcome = (item, status, result) => {
+    dbPut(toPersisted({ ...item, status, result })).catch(() => {});
+  };
+
   const analyzeAllImages = useCallback(async () => {
     const pending = images.filter((img) => img.status === 'pending');
     if (!pending.length) return;
@@ -97,19 +143,15 @@ export const useImageAnalysis = () => {
 
       try {
         const response = await _runAnalysis(item);
-        setImages((prev) =>
-          prev.map((img) =>
-            img.id === item.id
-              ? { ...img, status: response.success ? 'completed' : 'error', result: response.success ? response.data : { error: response.error } }
-              : img
-          )
-        );
+        const status = response.success ? 'completed' : 'error';
+        const result = response.success ? response.data : { error: response.error };
+        setImages((prev) => prev.map((img) => (img.id === item.id ? { ...img, status, result } : img)));
+        _persistOutcome(item, status, result);
       } catch (err) {
-        setImages((prev) =>
-          prev.map((img) =>
-            img.id === item.id ? { ...img, status: 'error', result: { error: err.message } } : img
-          )
-        );
+        const status = 'error';
+        const result = { error: err.message };
+        setImages((prev) => prev.map((img) => (img.id === item.id ? { ...img, status, result } : img)));
+        _persistOutcome(item, status, result);
       }
 
       setProgress({ current: i + 1, total: pending.length });
@@ -128,19 +170,15 @@ export const useImageAnalysis = () => {
 
     try {
       const response = await _runAnalysis(item);
-      setImages((prev) =>
-        prev.map((img) =>
-          img.id === imageId
-            ? { ...img, status: response.success ? 'completed' : 'error', result: response.success ? response.data : { error: response.error } }
-            : img
-        )
-      );
+      const status = response.success ? 'completed' : 'error';
+      const result = response.success ? response.data : { error: response.error };
+      setImages((prev) => prev.map((img) => (img.id === imageId ? { ...img, status, result } : img)));
+      _persistOutcome(item, status, result);
     } catch (err) {
-      setImages((prev) =>
-        prev.map((img) =>
-          img.id === imageId ? { ...img, status: 'error', result: { error: err.message } } : img
-        )
-      );
+      const status = 'error';
+      const result = { error: err.message };
+      setImages((prev) => prev.map((img) => (img.id === imageId ? { ...img, status, result } : img)));
+      _persistOutcome(item, status, result);
     }
   }, [images]); // eslint-disable-line react-hooks/exhaustive-deps
 

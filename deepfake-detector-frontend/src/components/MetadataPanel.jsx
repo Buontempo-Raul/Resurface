@@ -12,14 +12,14 @@ const STATUS_CONFIG = {
     icon: ShieldQuestion,
     label: 'Metadata absent',
     detail: 'No significance for authenticity — many platforms (WhatsApp, Instagram, Facebook) strip EXIF/container metadata on upload regardless of whether the file is real or fake.',
-    className: 'bg-gray-50 dark:bg-gray-700/40 border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300',
+    className: 'bg-white/50 dark:bg-white/5 backdrop-blur-sm border-white/40 dark:border-white/10 text-gray-600 dark:text-gray-300',
     iconClassName: 'text-gray-400',
   },
   metadata_present_no_markers: {
     icon: ShieldQuestion,
     label: 'No known AI-generation markers found',
     detail: 'Metadata is present, but this is not proof the file is authentic.',
-    className: 'bg-gray-50 dark:bg-gray-700/40 border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300',
+    className: 'bg-white/50 dark:bg-white/5 backdrop-blur-sm border-white/40 dark:border-white/10 text-gray-600 dark:text-gray-300',
     iconClassName: 'text-gray-400',
   },
 };
